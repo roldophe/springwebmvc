@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:14
+    container_name: mvc-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: mvcdb
+      POSTGRES_USER: mvcuser
+      POSTGRES_PASSWORD: mvcpass
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "5477:5432"
+
+volumes:
+  pg_data:
