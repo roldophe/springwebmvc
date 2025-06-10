@@ -8,8 +8,10 @@ import com.example.springwebmvc.repository.ProductRepository;
 import com.example.springwebmvc.service.ProductService;
 import com.example.springwebmvc.utils.SlugUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -36,6 +38,12 @@ public class ProductServiceImpl implements ProductService {
         if (product.name()!=null) {
             newProduct.setSlug(SlugUtil.toSlug(product.name()));
         }
+
+        // Check if the product already exists
+        if (repository.existsBySlug(newProduct.getSlug())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Product with slug already exists: " + newProduct.getSlug());
+        }
+
         // Start inserting a product
         productRepository.insertProduct(newProduct);
         // Start inserting product categories
@@ -45,6 +53,11 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public void update(Integer id, UpdateProductDto product) {
+
+        // Check if the product exists before updating
+        if (!repository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Product not found with ID: " + id);
+        }
 
         //Map from DTO to POJO
         Product updateProduct = Product.builder()
@@ -63,6 +76,10 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public void delete(Integer id) {
+        // Check if the product exists before deleting
+        if (!repository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Product not found with ID: " + id);
+        }
         repository.deleteById(id);
     }
 
@@ -70,7 +87,7 @@ public class ProductServiceImpl implements ProductService {
     public Product findById(Integer id) {
         Product product = repository.findById(id);
         if (product == null) {
-            throw new RuntimeException("Product not found with ID: " + id);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Product not found with ID: " + id);
         }
         return product;
     }
@@ -80,7 +97,7 @@ public class ProductServiceImpl implements ProductService {
 
         Product product = repository.findBySlug(slug);
         if (product == null) {
-            throw new RuntimeException("Product not found with Slug: " + slug);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Product not found with Slug: " + slug);
         }
         return product;
     }
