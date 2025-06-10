@@ -103,4 +103,7 @@ public interface ProductRepository {
     """)
     List<Product> searchByNameAndStatus(@Param("name") String name,
                                         @Param("status") Boolean status);
+
+    @Select("SELECT EXISTS (SELECT 1 FROM products WHERE id = #{id})")
+    boolean existsById(Integer id);
 }
